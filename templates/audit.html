@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Trail — Nyaya Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">NV</div>
+      <div class="brand-text">Nyaya Vault<small>Case Record System</small></div>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('file_fir') }}">File New FIR</a>
+      <a href="{{ url_for('search_records') }}">Search Records</a>
+      <a href="{{ url_for('audit_trail') }}" class="active">Audit Trail</a>
+      <a href="{{ url_for('logout') }}">Log out</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user">
+        <div class="avatar">{{ user_name[0] if user_name else "U" }}</div>
+        <div>
+          <div class="sidebar-user-name">{{ user_name }}</div>
+          <div class="sidebar-user-role">{{ user_role }}</div>
+        </div>
+      </div>
+      Session verified
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title">Audit Trail</div>
+        <div class="page-sub">Every action is logged and cannot be edited after the fact</div>
+      </div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <p style="color:#C0392B; background:#FBEAE8; padding:12px 16px; border-radius:8px; font-size:13.5px; margin-bottom:20px;">{{ messages[0] }}</p>
+      {% endif %}
+    {% endwith %}
+
+    <div class="form-card" style="max-width: 100%;">
+      <h3 style="font-family: var(--serif); font-size: 16px; margin-bottom: 6px;">Demo: simulate a tampering attempt</h3>
+      <p style="font-size: 13px; color: var(--ink-soft); margin-bottom: 14px;">
+        For demonstration — this simulates someone trying to alter a sealed FIR record without authorization. It will show up flagged below instead of silently succeeding.
+      </p>
+      <form method="POST" action="{{ url_for('simulate_tamper', case_id=1) }}">
+        <button type="submit" class="btn btn-outline" style="border-color:#C0392B; color:#C0392B;">Simulate Tamper Attempt on FIR/0231/20</button>
+      </form>
+    </div>
+
+    <div class="ledger">
+      <div class="ledger-row head" style="grid-template-columns: 150px 1fr 160px 100px;">
+        <div>User</div>
+        <div>Action</div>
+        <div>Timestamp</div>
+        <div>Flag</div>
+      </div>
+      {% for log in logs %}
+      <div class="ledger-row" style="grid-template-columns: 150px 1fr 160px 100px;">
+        <div class="doc-name">{{ log.user_name }}</div>
+        <div class="doc-meta">{{ log.action }}{% if log.reference %} — {{ log.reference }}{% endif %}</div>
+        <div class="doc-meta">{{ log.timestamp }}</div>
+        <div>
+          {% if log.flagged %}
+            <span class="status status-flagged">Flagged</span>
+          {% else %}
+            <span class="status status-pass">Clean</span>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <p style="padding:20px 18px; color:var(--ink-soft); font-size:13.5px;">No activity yet.</p>
+      {% endfor %}
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

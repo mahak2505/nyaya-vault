@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ case.fir_number }} — Nyaya Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">NV</div>
+      <div class="brand-text">Nyaya Vault<small>Case Record System</small></div>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('home') }}">Home</a>
+      <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      <a href="{{ url_for('file_fir') }}">File New FIR</a>
+      <a href="{{ url_for('search_records') }}" class="active">Search Records</a>
+      <a href="{{ url_for('audit_trail') }}">Audit Trail</a>
+      <a href="{{ url_for('logout') }}">Log out</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user">
+        <div class="avatar">{{ user_name[0] if user_name else "U" }}</div>
+        <div>
+          <div class="sidebar-user-name">{{ user_name }}</div>
+          <div class="sidebar-user-role">{{ user_role }}</div>
+        </div>
+      </div>
+      Session verified
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title">{{ case.fir_number }}</div>
+        <div class="page-sub">{{ case.person_name }} · {{ case.offence_section }}</div>
+      </div>
+      <span class="status {{ 'status-pass' if case.status == 'Pass' else 'status-pending' }}">{{ case.status }}</span>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <p style="color:#1B8A5A; background:#E6F5EC; padding:12px 16px; border-radius:8px; font-size:13.5px; margin-bottom:20px;">{{ messages[0] }}</p>
+      {% endif %}
+    {% endwith %}
+
+    {% if is_overdue %}
+    <div class="tamper-banner">
+      ⏰ Overdue — charge sheet deadline ({{ case.due_date }}) has passed while this case is still at "{{ case.stage }}".
+    </div>
+    {% endif %}
+
+    <div class="stage-tracker">
+      {% for s in stages %}
+        {% set idx = stages.index(s) %}
+        {% set current_idx = stages.index(case.stage) if case.stage in stages else 0 %}
+        <div class="stage-step {{ 'done' if idx < current_idx else ('current' if idx == current_idx else '') }}">
+          <div class="stage-line"></div>
+          <div class="stage-dot">{{ idx + 1 }}</div>
+          {{ s }}
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if case.stage != 'Disposed' %}
+    <form method="POST" action="{{ url_for('advance_stage', case_id=case.id) }}" style="margin-bottom: 28px;">
+      <button type="submit" class="btn btn-primary">Advance to next stage</button>
+    </form>
+    {% endif %}
+
+    <div class="form-card" style="max-width: 100%;">
+      <h3 style="font-family: var(--serif); font-size: 16px; margin-bottom: 14px;">Case details</h3>
+      <p style="font-size: 13.5px; color: var(--ink-soft); margin-bottom: 6px;"><strong>Description:</strong> {{ case.description or "—" }}</p>
+      <p style="font-size: 13.5px; color: var(--ink-soft); margin-bottom: 6px;"><strong>Person phone:</strong> {{ case.person_phone }}</p>
+      <p style="font-size: 13.5px; color: var(--ink-soft); margin-bottom: 6px;"><strong>Filed by:</strong> {{ case.filed_by }} on {{ case.filed_at }}</p>
+      <p style="font-size: 13.5px; color: var(--ink-soft);"><strong>Charge-sheet due:</strong> {{ case.due_date }}</p>
+      <p style="font-size: 12px; font-family: var(--mono); color: var(--ink-faint); margin-top: 12px;">Seal: {{ case.hash_seal }}</p>
+    </div>
+
+    <div class="section-head">
+      <div class="section-title">Evidence</div>
+    </div>
+
+    <div class="form-card" style="max-width: 100%;">
+      <form method="POST" action="{{ url_for('upload_evidence', case_id=case.id) }}" enctype="multipart/form-data" style="display:flex; gap:10px; align-items:center; margin-bottom: 18px;">
+        <input type="file" name="file" required>
+        <button type="submit" class="btn btn-primary">Upload &amp; Seal</button>
+      </form>
+
+      {% for ev in evidence %}
+      <div class="evidence-item">
+        <div>
+          <div class="doc-name">{{ ev.file_name }}</div>
+          <div class="doc-meta">{{ ev.uploaded_by }} · {{ ev.uploaded_at }}</div>
+        </div>
+        <div class="hash-tag">{{ ev.file_hash[:8] }}…{{ ev.file_hash[-6:] }}</div>
+      </div>
+      {% else %}
+      <p style="font-size: 13px; color: var(--ink-soft);">No evidence uploaded yet.</p>
+      {% endfor %}
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

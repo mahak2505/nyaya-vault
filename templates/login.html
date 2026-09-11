@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — Nyaya Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="login-shell">
+  <div class="login-side">
+    <div class="brand">
+      <div class="brand-mark">NV</div>
+      <div class="brand-text">Nyaya Vault</div>
+    </div>
+
+    <div class="login-quote">
+      Every filing, every signature, every access — recorded once and <span>unable to be quietly rewritten.</span>
+    </div>
+
+    <div class="login-side-foot">
+      Restricted system. Access is logged and monitored under the IT Act, 2000 and applicable departmental rules.
+    </div>
+  </div>
+
+  <div class="login-form-wrap">
+    <form class="login-form" method="POST" action="{{ url_for('login') }}">
+      <h1>Officer Sign in</h1>
+      <p class="lede">Enter your service credentials to access case records.</p>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <p style="color:#C0392B; font-size:13px; margin-bottom:16px;">{{ messages[0] }}</p>
+        {% endif %}
+      {% endwith %}
+
+      <div class="field">
+        <label for="username">Service ID</label>
+        <input type="text" id="username" name="username" placeholder="e.g. rsharma" autocomplete="username">
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••••" autocomplete="current-password">
+      </div>
+
+      <p class="mfa-note">Demo login — ID: rsharma, password: password123</p>
+
+      <button type="submit" class="login-btn">Sign in</button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>
